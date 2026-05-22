@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx shadcn@latest add alert --yes)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(npx shadcn@latest add card --yes)"
     ]
   }
 }

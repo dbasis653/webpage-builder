@@ -1,5 +1,5 @@
 import type { Page } from "@/lib/validators/page";
-import { SECTION_REGISTRY } from "@/lib/constants/sectionRegistry";
+import { SECTION_REGISTRY } from "@/lib/sectionRegistry";
 import SectionErrorBoundary from "@/components/sections/SectionErrorBoundary";
 import UnsupportedSection from "@/components/sections/UnsupportedSection";
 

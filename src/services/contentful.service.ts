@@ -1,7 +1,18 @@
 import { deliveryClient, previewClient } from "@/lib/contentful";
 import { PageSchema, type Page } from "@/lib/validators/page";
 import { ApiError } from "@/utils/apiError";
+import {
+  CONTENTFUL_PAGE_CONTENT_TYPE,
+  CONTENTFUL_INCLUDE_DEPTH,
+} from "@/lib/constants/contentful";
 import type { Entry, EntrySkeletonType } from "contentful";
+
+export interface PageSummary {
+  pageId: string;
+  slug: string;
+  title: string;
+  sectionCount: number;
+}
 
 // Transforms a raw Contentful section entry into our Section shape.
 // Strips all Contentful-specific metadata (sys, metadata, etc).
@@ -30,6 +41,33 @@ function transformPage(entry: Entry<EntrySkeletonType>): unknown {
   };
 }
 
+// Fetches all pages from Contentful and returns a lightweight summary list.
+// Uses include:1 to resolve the sections reference just enough to count them.
+export async function fetchAllPages(): Promise<PageSummary[]> {
+  // 1. Fetch all page entries with one level of link resolution (for section count)
+  const response = await deliveryClient.getEntries({
+    content_type: CONTENTFUL_PAGE_CONTENT_TYPE,
+    include: 1,
+  } as Parameters<typeof deliveryClient.getEntries>[0]);
+
+  // 2. Map each entry to a PageSummary, skipping entries with missing required fields
+  const pages: PageSummary[] = [];
+  for (const entry of response.items) {
+    const fields = entry.fields as Record<string, unknown>;
+    if (typeof fields.slug === "string" && typeof fields.title === "string") {
+      const sections = Array.isArray(fields.sections) ? fields.sections : [];
+      pages.push({
+        pageId: entry.sys.id,
+        slug: fields.slug,
+        title: fields.title,
+        sectionCount: sections.length,
+      });
+    }
+  }
+
+  return pages;
+}
+
 // Fetches a page by slug from Contentful, validates it, and returns a clean Page object.
 // Throws if the page is not found or if the data fails validation.
 export async function fetchPageBySlug(
@@ -40,9 +78,9 @@ export async function fetchPageBySlug(
 
   // 1. Query Contentful for the page entry matching the slug
   const response = await client.getEntries({
-    content_type: "page",
+    content_type: CONTENTFUL_PAGE_CONTENT_TYPE,
     "fields.slug": slug,
-    include: 2,
+    include: CONTENTFUL_INCLUDE_DEPTH,
   } as Parameters<typeof client.getEntries>[0]);
 
   // 2. Throw if no matching page found
