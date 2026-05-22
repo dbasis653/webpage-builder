@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import Navbar from "@/components/layout/Navbar";
+import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   actions?: React.ReactNode;
 }
 
-// Shared site header: logo on the left, Navbar in the center-right area,
-// and an optional actions slot on the far right (used by the studio).
+// Shared site header: logo left, Navbar center-left, optional actions + auth buttons far right.
 export default function Header({ actions }: HeaderProps): React.JSX.Element {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -19,8 +20,24 @@ export default function Header({ actions }: HeaderProps): React.JSX.Element {
         {/* -- Navigation -- */}
         <Navbar />
 
-        {/* -- Optional right-side slot (e.g. StudioActions) -- */}
-        {actions && <div className="ml-auto">{actions}</div>}
+        {/* -- Right side: optional actions slot + auth -- */}
+        <div className="ml-auto flex items-center gap-3">
+          {/* -- Studio-specific controls (Save, Publish, etc.) -- */}
+          {actions}
+
+          {/* -- Auth: sign in button when logged out, avatar when logged in -- */}
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <Button size="sm" variant="outline">
+                Sign In
+              </Button>
+            </SignInButton>
+          </Show>
+
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+        </div>
       </div>
     </header>
   );

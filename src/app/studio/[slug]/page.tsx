@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { loadDraft } from "@/store/slices/draftPageSlice";
+import { useRole } from "@/hooks/useRole";
+import { hasPermission } from "@/utils/permissions";
 import { PageSchema } from "@/lib/validators/page";
 import { DRAFT_KEY_PREFIX } from "@/lib/constants/storage";
 import StudioLayout from "@/components/studio/StudioLayout";
@@ -31,10 +33,14 @@ async function fetchPageFromApi(slug: string): Promise<unknown> {
 export default function StudioPage(): React.JSX.Element {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
+  const { role, isLoading: roleLoading } = useRole();
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Viewer role can open the studio but cannot edit anything
+  const canEdit = !roleLoading && role !== null && hasPermission(role, "edit");
 
   useEffect(() => {
     // 1. Detect mobile on mount — studio is desktop-only
@@ -98,5 +104,5 @@ export default function StudioPage(): React.JSX.Element {
     );
   }
 
-  return <StudioLayout isLoading={isLoading} />;
+  return <StudioLayout isLoading={isLoading} canEdit={canEdit} />;
 }

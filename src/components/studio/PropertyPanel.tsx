@@ -16,14 +16,17 @@ import { X } from "lucide-react";
 import HeroEditor from "@/components/studio/editors/HeroEditor";
 import CTAEditor from "@/components/studio/editors/CTAEditor";
 
+interface PropertyPanelProps {
+  canEdit: boolean;
+}
+
 // Routes to the correct section editor by type.
-// Returns null if no editor exists for the given type.
-function renderEditor(section: Section): React.JSX.Element | null {
+function renderEditor(section: Section, canEdit: boolean): React.JSX.Element {
   switch (section.type) {
     case "hero":
-      return <HeroEditor section={section} />;
+      return <HeroEditor section={section} canEdit={canEdit} />;
     case "cta":
-      return <CTAEditor section={section} />;
+      return <CTAEditor section={section} canEdit={canEdit} />;
     default:
       return (
         <p className="p-4 text-sm text-muted-foreground">
@@ -34,8 +37,8 @@ function renderEditor(section: Section): React.JSX.Element | null {
 }
 
 // Right panel showing the editor for the currently selected section.
-// On mobile it slides in as a Sheet; on desktop it is a fixed-width side panel.
-export default function PropertyPanel(): React.JSX.Element {
+// Inputs are disabled when canEdit is false (viewer role).
+export default function PropertyPanel({ canEdit }: PropertyPanelProps): React.JSX.Element {
   const dispatch = useAppDispatch();
   const selectedSectionId = useAppSelector(
     (state) => state.ui.selectedSectionId,
@@ -66,6 +69,13 @@ export default function PropertyPanel(): React.JSX.Element {
       </div>
       <Separator />
 
+      {/* -- View-only notice for viewer role -- */}
+      {!canEdit && (
+        <p className="px-4 py-2 text-xs text-muted-foreground">
+          You have view-only access.
+        </p>
+      )}
+
       {/* -- Editor content -- */}
       <ScrollArea className="flex-1">
         {!selectedSection ? (
@@ -73,7 +83,7 @@ export default function PropertyPanel(): React.JSX.Element {
             Select a section to edit its properties.
           </p>
         ) : (
-          renderEditor(selectedSection)
+          renderEditor(selectedSection, canEdit)
         )}
       </ScrollArea>
     </div>

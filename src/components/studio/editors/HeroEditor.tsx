@@ -11,11 +11,12 @@ import InlineError from "@/components/ui/InlineError";
 
 interface HeroEditorProps {
   section: Section;
+  canEdit: boolean;
 }
 
 // Edits the title and subtitle of a Hero section.
 // Debounces Redux dispatches by 300ms to avoid flooding on every keystroke.
-export default function HeroEditor({ section }: HeroEditorProps): React.JSX.Element {
+export default function HeroEditor({ section, canEdit }: HeroEditorProps): React.JSX.Element {
   const dispatch = useAppDispatch();
   const parsed = HeroPropsSchema.safeParse(section.props);
 
@@ -55,6 +56,7 @@ export default function HeroEditor({ section }: HeroEditorProps): React.JSX.Elem
         <Input
           id={`${section.sectionId}-title`}
           value={title}
+          disabled={!canEdit}
           onChange={(e) => {
             setTitle(e.target.value);
             dispatchDebounced({ title: e.target.value });
@@ -68,6 +70,7 @@ export default function HeroEditor({ section }: HeroEditorProps): React.JSX.Elem
         <Input
           id={`${section.sectionId}-subtitle`}
           value={subtitle}
+          disabled={!canEdit}
           onChange={(e) => {
             setSubtitle(e.target.value);
             dispatchDebounced({ subtitle: e.target.value });
