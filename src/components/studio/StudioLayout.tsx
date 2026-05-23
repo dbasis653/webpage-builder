@@ -21,7 +21,7 @@ export default function StudioLayout({ isLoading }: StudioLayoutProps): React.JS
       {/* -- Three-panel body -- */}
       <div className="flex flex-1 overflow-hidden">
         {/* -- Left panel: section list -- */}
-        <aside className="w-64 flex-shrink-0 overflow-hidden border-r bg-slate-300">
+        <aside aria-label="Page sections" className="w-64 flex-shrink-0 overflow-hidden border-r bg-slate-300">
           <SectionList />
         </aside>
 

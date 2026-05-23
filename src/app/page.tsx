@@ -39,7 +39,7 @@ export default async function Home(): Promise<React.JSX.Element> {
         {/* -- Empty state -- */}
         {!fetchError && pages.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-24 text-center">
-            <FileText className="size-10 text-muted-foreground" />
+            <FileText className="size-10 text-muted-foreground" aria-hidden="true" />
             <p className="text-sm font-medium">No pages found</p>
             <p className="text-sm text-muted-foreground">
               Create a page entry in Contentful to get started.

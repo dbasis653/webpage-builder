@@ -66,7 +66,15 @@ export default function SectionList(): React.JSX.Element {
           {sections.map((section, index) => (
             <div
               key={section.sectionId}
+              role="button"
+              tabIndex={0}
+              aria-label={`Select ${SECTION_TYPE_LABELS[section.type]} section`}
+              aria-pressed={selectedSectionId === section.sectionId}
               onClick={() => dispatch(selectSection(section.sectionId))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  dispatch(selectSection(section.sectionId));
+              }}
               className={`flex cursor-pointer items-center justify-between rounded-md bg-white px-3 py-2 transition-colors hover:bg-gray-400 ${
                 selectedSectionId === section.sectionId
                   ? "bg-gray-400 ring-1 ring-ring"
@@ -89,6 +97,7 @@ export default function SectionList(): React.JSX.Element {
                       size="icon"
                       variant="ghost"
                       className="size-6"
+                      aria-label="Move section up"
                       disabled={index === 0}
                       onClick={() =>
                         dispatch(
@@ -99,7 +108,7 @@ export default function SectionList(): React.JSX.Element {
                         )
                       }
                     >
-                      <ChevronUp className="size-3.5" />
+                      <ChevronUp className="size-3.5" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Move up</TooltipContent>
@@ -111,6 +120,7 @@ export default function SectionList(): React.JSX.Element {
                       size="icon"
                       variant="ghost"
                       className="size-6"
+                      aria-label="Move section down"
                       disabled={index === sections.length - 1}
                       onClick={() =>
                         dispatch(
@@ -121,7 +131,7 @@ export default function SectionList(): React.JSX.Element {
                         )
                       }
                     >
-                      <ChevronDown className="size-3.5" />
+                      <ChevronDown className="size-3.5" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Move down</TooltipContent>
@@ -133,9 +143,10 @@ export default function SectionList(): React.JSX.Element {
                       size="icon"
                       variant="ghost"
                       className="size-6 text-destructive hover:text-destructive"
+                      aria-label="Remove section"
                       onClick={() => dispatch(removeSection(section.sectionId))}
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-3.5" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Remove section</TooltipContent>
