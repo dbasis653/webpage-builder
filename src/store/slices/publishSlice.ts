@@ -1,44 +1,78 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import type { RootState } from "@/store/store";
 
 interface PublishState {
-  isPublishing: boolean;
-  lastPublishedVersion: string | null;
-  publishError: string | null;
+  status: "idle" | "loading" | "success" | "error";
+  lastVersion: string | null;
+  changelog: string[];
+  alreadyPublished: boolean;
+  error: string | null;
 }
 
 const initialState: PublishState = {
-  isPublishing: false,
-  lastPublishedVersion: null,
-  publishError: null,
+  status: "idle",
+  lastVersion: null,
+  changelog: [],
+  alreadyPublished: false,
+  error: null,
 };
+
+interface PublishResponse {
+  version: string;
+  changelog: string[];
+  alreadyPublished: boolean;
+}
+
+// Sends the current draft to POST /api/publish/<slug>.
+// Reads draft and slug directly from Redux state so the caller needs no arguments.
+export const publishPage = createAsyncThunk<
+  PublishResponse,
+  void,
+  { state: RootState; rejectValue: string }
+>("publish/publishPage", async (_, { getState, rejectWithValue }) => {
+  const page = getState().draftPage.page;
+
+  if (!page) {
+    return rejectWithValue("No draft loaded");
+  }
+
+  const res = await fetch(`/api/publish/${page.slug}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ page }),
+  });
+
+  const data = (await res.json()) as unknown;
+
+  if (!res.ok) {
+    const message = (data as Record<string, string>)?.error ?? "Publish failed";
+    return rejectWithValue(message);
+  }
+
+  return data as PublishResponse;
+});
 
 const publishSlice = createSlice({
   name: "publish",
   initialState,
-  reducers: {
-    // Toggles the publishing loading state.
-    setPublishing(state, action: PayloadAction<boolean>) {
-      state.isPublishing = action.payload;
-      if (action.payload) {
-        state.publishError = null;
-      }
-    },
-
-    // Stores the version string after a successful publish.
-    setLastPublishedVersion(state, action: PayloadAction<string>) {
-      state.lastPublishedVersion = action.payload;
-      state.isPublishing = false;
-    },
-
-    // Stores an error message if the publish fails.
-    setPublishError(state, action: PayloadAction<string | null>) {
-      state.publishError = action.payload;
-      state.isPublishing = false;
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(publishPage.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(publishPage.fulfilled, (state, action) => {
+        state.status = "success";
+        state.lastVersion = action.payload.version;
+        state.changelog = action.payload.changelog;
+        state.alreadyPublished = action.payload.alreadyPublished;
+      })
+      .addCase(publishPage.rejected, (state, action) => {
+        state.status = "error";
+        state.error = action.payload ?? "Unknown error";
+      });
   },
 });
-
-export const { setPublishing, setLastPublishedVersion, setPublishError } =
-  publishSlice.actions;
 
 export default publishSlice.reducer;

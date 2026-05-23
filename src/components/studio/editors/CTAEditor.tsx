@@ -11,12 +11,11 @@ import InlineError from "@/components/ui/InlineError";
 
 interface CTAEditorProps {
   section: Section;
-  canEdit: boolean;
 }
 
 // Edits the label and URL of a CTA section.
 // Debounces Redux dispatches by 300ms to avoid flooding on every keystroke.
-export default function CTAEditor({ section, canEdit }: CTAEditorProps): React.JSX.Element {
+export default function CTAEditor({ section }: CTAEditorProps): React.JSX.Element {
   const dispatch = useAppDispatch();
   const parsed = CTAPropsSchema.safeParse(section.props);
 
@@ -56,7 +55,6 @@ export default function CTAEditor({ section, canEdit }: CTAEditorProps): React.J
         <Input
           id={`${section.sectionId}-label`}
           value={label}
-          disabled={!canEdit}
           onChange={(e) => {
             setLabel(e.target.value);
             dispatchDebounced({ label: e.target.value });
@@ -70,7 +68,6 @@ export default function CTAEditor({ section, canEdit }: CTAEditorProps): React.J
         <Input
           id={`${section.sectionId}-url`}
           value={url}
-          disabled={!canEdit}
           onChange={(e) => {
             setUrl(e.target.value);
             dispatchDebounced({ url: e.target.value });

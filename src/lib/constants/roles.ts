@@ -5,7 +5,7 @@ export type Action = "view" | "edit" | "save" | "publish";
 
 // Defines which actions each role is allowed to perform.
 export const PERMISSIONS: Record<Role, Action[]> = {
-  admin:  ["view", "edit", "save", "publish"],
-  editor: ["view", "edit", "save"],
-  viewer: ["view"],
+  publisher: ["view", "edit", "save", "publish"],
+  editor:    ["view", "edit", "save"],
+  viewer:    ["view"],
 };

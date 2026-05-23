@@ -33,13 +33,8 @@ const SECTION_TYPE_LABELS: Record<Section["type"], string> = {
   cta: "CTA",
 };
 
-interface SectionListProps {
-  canEdit: boolean;
-}
-
 // Left panel of the studio. Lists all sections with reorder, remove, and select actions.
-// Mutation controls are disabled when canEdit is false (viewer role).
-export default function SectionList({ canEdit }: SectionListProps): React.JSX.Element {
+export default function SectionList(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const sections =
     useAppSelector((state) => state.draftPage.page?.sections) ?? [];
@@ -94,7 +89,7 @@ export default function SectionList({ canEdit }: SectionListProps): React.JSX.El
                       size="icon"
                       variant="ghost"
                       className="size-6"
-                      disabled={!canEdit || index === 0}
+                      disabled={index === 0}
                       onClick={() =>
                         dispatch(
                           reorderSections({
@@ -116,7 +111,7 @@ export default function SectionList({ canEdit }: SectionListProps): React.JSX.El
                       size="icon"
                       variant="ghost"
                       className="size-6"
-                      disabled={!canEdit || index === sections.length - 1}
+                      disabled={index === sections.length - 1}
                       onClick={() =>
                         dispatch(
                           reorderSections({
@@ -138,7 +133,6 @@ export default function SectionList({ canEdit }: SectionListProps): React.JSX.El
                       size="icon"
                       variant="ghost"
                       className="size-6 text-destructive hover:text-destructive"
-                      disabled={!canEdit}
                       onClick={() => dispatch(removeSection(section.sectionId))}
                     >
                       <Trash2 className="size-3.5" />
@@ -160,7 +154,6 @@ export default function SectionList({ canEdit }: SectionListProps): React.JSX.El
               variant="outline"
               size="sm"
               className="w-full gap-1.5"
-              disabled={!canEdit}
             >
               <Plus className="size-4" />
               Add Section

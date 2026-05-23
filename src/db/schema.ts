@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, pgEnum, uuid, jsonb, index } from "drizzle-orm/pg-core";
 
-export const roleEnum = pgEnum("role", ["admin", "editor", "viewer"]);
+export const roleEnum = pgEnum("role", ["publisher", "editor", "viewer"]);
 
 export const users = pgTable("users", {
   clerkId:   text("clerk_id").primaryKey(),
@@ -12,4 +12,17 @@ export const users = pgTable("users", {
 });
 
 // Derive Role type from the enum — single source of truth, stays in sync automatically.
-export type Role = typeof roleEnum.enumValues[number]; // "admin" | "editor" | "viewer"
+export type Role = typeof roleEnum.enumValues[number]; // "publisher" | "editor" | "viewer"
+
+// Each row is an immutable snapshot of a page at the moment of publish.
+// Rows are never updated or deleted — only inserted.
+export const releases = pgTable("releases", {
+  id:          uuid("id").primaryKey().defaultRandom(),
+  slug:        text("slug").notNull(),
+  version:     text("version").notNull(),
+  page:        jsonb("page").notNull(),
+  changelog:   text("changelog").array().notNull().default([]),
+  publishedAt: timestamp("published_at").notNull().defaultNow(),
+}, (t) => [
+  index("releases_slug_idx").on(t.slug),
+]);

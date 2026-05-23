@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { loadDraft } from "@/store/slices/draftPageSlice";
 import { useRole } from "@/hooks/useRole";
-import { hasPermission } from "@/utils/permissions";
 import { PageSchema } from "@/lib/validators/page";
 import { DRAFT_KEY_PREFIX } from "@/lib/constants/storage";
 import StudioLayout from "@/components/studio/StudioLayout";
@@ -30,17 +29,31 @@ async function fetchPageFromApi(slug: string): Promise<unknown> {
   return body.page;
 }
 
+// Fetches the latest published release from the DB via the internal API route.
+// Returns null if the page has never been published.
+async function fetchLatestRelease(slug: string): Promise<unknown | null> {
+  const res = await fetch(`/api/publish/${slug}`);
+  if (!res.ok) return null;
+  const body = (await res.json()) as { page: unknown };
+  return body.page;
+}
+
 export default function StudioPage(): React.JSX.Element {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { role, isLoading: roleLoading } = useRole();
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Viewer role can open the studio but cannot edit anything
-  const canEdit = !roleLoading && role !== null && hasPermission(role, "edit");
+  // Redirect viewer away from studio — viewers have no edit access
+  useEffect(() => {
+    if (!roleLoading && role === "viewer") {
+      router.replace("/");
+    }
+  }, [role, roleLoading, router]);
 
   useEffect(() => {
     // 1. Detect mobile on mount — studio is desktop-only
@@ -61,12 +74,25 @@ export default function StudioPage(): React.JSX.Element {
           setIsLoading(false);
           return;
         } catch {
-          // 3. Corrupted localStorage — clear it and fall through to API fetch
+          // 3. Corrupted localStorage — clear it and fall through
           localStorage.removeItem(`${DRAFT_KEY_PREFIX}${slug}`);
         }
       }
 
-      // 4. Fetch from the internal API route (runs Contentful server-side)
+      // 4. Try to load from the latest published release in the DB
+      try {
+        const released = await fetchLatestRelease(slug);
+        if (released) {
+          const page = PageSchema.parse(released);
+          dispatch(loadDraft(page));
+          setIsLoading(false);
+          return;
+        }
+      } catch {
+        // No valid release — fall through to Contentful
+      }
+
+      // 5. Last resort — fetch from Contentful via internal API route
       try {
         const raw = await fetchPageFromApi(slug);
         const page = PageSchema.parse(raw);
@@ -104,5 +130,5 @@ export default function StudioPage(): React.JSX.Element {
     );
   }
 
-  return <StudioLayout isLoading={isLoading} canEdit={canEdit} />;
+  return <StudioLayout isLoading={isLoading} />;
 }

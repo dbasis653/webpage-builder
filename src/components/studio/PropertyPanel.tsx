@@ -16,17 +16,13 @@ import { X } from "lucide-react";
 import HeroEditor from "@/components/studio/editors/HeroEditor";
 import CTAEditor from "@/components/studio/editors/CTAEditor";
 
-interface PropertyPanelProps {
-  canEdit: boolean;
-}
-
 // Routes to the correct section editor by type.
-function renderEditor(section: Section, canEdit: boolean): React.JSX.Element {
+function renderEditor(section: Section): React.JSX.Element {
   switch (section.type) {
     case "hero":
-      return <HeroEditor section={section} canEdit={canEdit} />;
+      return <HeroEditor section={section} />;
     case "cta":
-      return <CTAEditor section={section} canEdit={canEdit} />;
+      return <CTAEditor section={section} />;
     default:
       return (
         <p className="p-4 text-sm text-muted-foreground">
@@ -37,8 +33,7 @@ function renderEditor(section: Section, canEdit: boolean): React.JSX.Element {
 }
 
 // Right panel showing the editor for the currently selected section.
-// Inputs are disabled when canEdit is false (viewer role).
-export default function PropertyPanel({ canEdit }: PropertyPanelProps): React.JSX.Element {
+export default function PropertyPanel(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const selectedSectionId = useAppSelector(
     (state) => state.ui.selectedSectionId,
@@ -69,13 +64,6 @@ export default function PropertyPanel({ canEdit }: PropertyPanelProps): React.JS
       </div>
       <Separator />
 
-      {/* -- View-only notice for viewer role -- */}
-      {!canEdit && (
-        <p className="px-4 py-2 text-xs text-muted-foreground">
-          You have view-only access.
-        </p>
-      )}
-
       {/* -- Editor content -- */}
       <ScrollArea className="flex-1">
         {!selectedSection ? (
@@ -83,7 +71,7 @@ export default function PropertyPanel({ canEdit }: PropertyPanelProps): React.JS
             Select a section to edit its properties.
           </p>
         ) : (
-          renderEditor(selectedSection, canEdit)
+          renderEditor(selectedSection)
         )}
       </ScrollArea>
     </div>
